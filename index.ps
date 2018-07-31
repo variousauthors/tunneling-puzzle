@@ -1,0 +1,121 @@
+title Tunneling
+author various authors
+homepage www.puzzlescript.net
+
+========
+OBJECTS
+========
+
+Background 
+GREEN  
+
+Target 
+DarkBlue    
+
+Wall 
+BROWN
+
+Player 
+Blue   
+
+Crate 
+Orange 
+
+Source
+grey blue
+00000
+00000
+00100
+00000
+00000
+
+US
+grey blue
+..1..
+..1..
+..1..
+.....
+.....
+
+DS
+grey blue
+.....
+.....
+..1..
+..1..
+..1..
+
+LS
+grey blue
+.....
+.....
+111..
+.....
+.....
+
+RS
+grey blue
+.....
+.....
+..111
+.....
+.....
+
+=======
+LEGEND
+=======
+
+. = Background
+# = Wall
+P = Player
+* = Crate
+@ = Crate and Target
+O = Target
+S = Source
+
+Overlays = DS or US or LS or RS
+Pushable = Source
+
+=======
+SOUNDS
+=======
+
+================
+COLLISIONLAYERS
+================
+
+Background
+Target
+Player, Wall, Crate, Source
+US
+DS
+LS
+RS
+
+======
+RULES     
+======     
+
+[ >  Player | Pushable ] -> [  >  Player | > Pushable  ]
+
+[ Overlays ] -> []
+
+late right [ Source | Source ] -> [ Source RS | Source LS ]
+late down [ Source | Source ] -> [ Source DS | Source US ]
+
+==============
+WINCONDITIONS
+==============
+
+
+=======     
+LEVELS
+=======
+
+#########
+#.......#
+#.S.S.@.#
+#.P.*.O.#
+#...S.S.#
+#.......#
+#########
