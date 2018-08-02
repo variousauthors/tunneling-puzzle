@@ -1,6 +1,7 @@
 title Tunneling
 author various authors
 homepage www.puzzlescript.net
+zoomscreen 18x9
 
 ========
 OBJECTS
@@ -15,11 +16,20 @@ DarkBlue
 Wall 
 BROWN
 
-Player 
-Blue   
+Player (camera)
+TRANSPARENT
 
-Crate 
-Orange 
+Engineer
+blue
+
+Robot
+red
+
+Controls
+orange
+
+Controller
+TRANSPARENT
 
 Source
 grey blue
@@ -67,14 +77,19 @@ LEGEND
 
 . = Background
 # = Wall
-P = Player
-* = Crate
-@ = Crate and Target
+A = Robot
 O = Target
 S = Source
+c = Controls
 
 Overlays = DS or US or LS or RS
 Pushable = Source
+Pusher = Player or Robot
+Subject = Engineer or Robot
+
+Camera = Player
+Start = Player and Engineer
+P = Start
 
 =======
 SOUNDS
@@ -85,23 +100,43 @@ COLLISIONLAYERS
 ================
 
 Background
-Target
-Player, Wall, Crate, Source
-US
+Target, Controls
+Engineer, Wall, Source, Robot
+US, Controller
 DS
 LS
 RS
+Player
 
 ======
 RULES     
 ======     
 
-[ >  Player | Pushable ] -> [  >  Player | > Pushable  ]
+( the player pilotes the engineer )
+[> Player] [Engineer] -> [> Player] [> Engineer]
 
+( the engineer can activate and deactivate the robot )
+[action Player Engineer Controls] [Robot] -> [Engineer Controls] [Player Robot]
+[action Player Robot] [Engineer] -> [Robot] [Player Engineer]
+
+( the engineer pilotes the robot )
+[ > Engineer ][ > Player Robot ] -> [ Engineer ][ > Player > Robot ]
+
+( pushers push pushable things )
+[ > Pusher | Pushable ] -> [  >  Pusher | > Pushable  ]
+
+( clear the overlays )
 [ Overlays ] -> []
 
+( render overlays )
+
+( adjacent sources transfer power )
 late right [ Source | Source ] -> [ Source RS | Source LS ]
 late down [ Source | Source ] -> [ Source DS | Source US ]
+
+( power transfers through walls )
+late right [ Source | Wall | Source ] -> [ Source RS | Wall RS LS | Source LS ]
+late down [ Source | Wall | Source ] -> [ Source DS | Wall DS US | Source US ]
 
 ==============
 WINCONDITIONS
@@ -112,10 +147,16 @@ WINCONDITIONS
 LEVELS
 =======
 
-#########
-#.......#
-#.S.S.@.#
-#.P.*.O.#
-#...S.S.#
-#.......#
-#########
+##############
+#............#
+#.##########.#
+#.#.S.S....#.#
+#.#.A...O..#.#
+#.#...S.S..#.#
+#.##########.#
+#.....#.C....#
+#............#
+#..S..P..S...#
+#............#
+#............#
+##############
