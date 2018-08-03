@@ -2,19 +2,23 @@ title Tunneling
 author various authors
 homepage www.puzzlescript.net
 zoomscreen 18x9
+run_rules_on_level_start
 
 ========
 OBJECTS
 ========
 
 Background 
-GREEN  
+black  
+
+Floor
+BROWN
 
 Target 
 DarkBlue    
 
 Wall 
-BROWN
+DARKBROWN
 
 Player (camera)
 TRANSPARENT
@@ -32,7 +36,7 @@ Controller
 TRANSPARENT
 
 Source
-grey blue
+GREY blue
 00000
 00000
 00100
@@ -48,7 +52,7 @@ grey blue
 .....
 
 DS
-grey blue
+LIGHTGRAY blue
 .....
 .....
 ..1..
@@ -71,25 +75,95 @@ grey blue
 .....
 .....
 
+overload
+red
+.....
+.....
+..0..
+.....
+.....
+
+UIHorizontal
+LIGHTGREEN
+.....
+.....
+00000
+.....
+.....
+
+UIVertical
+LIGHTGREEN
+..0..
+..0..
+..0..
+..0..
+..0..
+
+UICornerTL
+LIGHTGREEN
+.....
+.....
+..000
+..0..
+..0..
+
+UICornerTR
+LIGHTGREEN
+.....
+.....
+000..
+..0..
+..0..
+
+UICornerBL
+LIGHTGREEN
+..0..
+..0..
+..000
+.....
+.....
+
+UICornerBR
+LIGHTGREEN
+..0..
+..0..
+000..
+.....
+.....
+
 =======
 LEGEND
 =======
 
-. = Background
-# = Wall
-A = Robot
-O = Target
-S = Source
-c = Controls
+voidscape = Background
+
+. = Floor
+# = Wall and Floor
+A = Robot and Floor
+O = Target and Floor
+S = Source and Floor
+c = Controls and Floor
+
+? = voidscape
+' = voidscape
+
+| = UIVertical and voidscape
+- = UIHorizontal and voidscape
+⌜ = UICornerTL and voidscape
+⌝ = UICornerTR and voidscape
+⌞ = UICornerBL and voidscape
+⌟ = UICornerBR and voidscape
 
 Overlays = DS or US or LS or RS
 Pushable = Source
 Pusher = Player or Robot
 Subject = Engineer or Robot
 
+UI = UIHorizontal or UIVertical or UICornerTL or UICornerTR or UICornerBL or UICornerBR
 Camera = Player
-Start = Player and Engineer
+Start = Player and Engineer and Floor
 P = Start
+
 
 =======
 SOUNDS
@@ -99,18 +173,31 @@ SOUNDS
 COLLISIONLAYERS
 ================
 
-Background
+voidscape,
+Floor
 Target, Controls
-Engineer, Wall, Source, Robot
+Engineer, Wall, Source, Robot, UI
 US, Controller
 DS
 LS
 RS
+overload
 Player
 
 ======
 RULES     
 ======     
+
+( NOTES )
+( something should happen if the player makes a loop )
+( but it should be impossible to make a loop for the first little while )
+
+( we will hide some sources outside under the snow )
+( this will work better if the sources have some depth, )
+( but depth means the source dot can't be centered... )
+
+( the player cannot walk through walls )
+[> Player | Wall ] -> [ Player | Wall ]
 
 ( the player pilotes the engineer )
 [> Player] [Engineer] -> [> Player] [> Engineer]
@@ -127,6 +214,9 @@ RULES
 
 ( clear the overlays )
 [ Overlays ] -> []
+[ overload ] -> []
+
+
 
 ( render overlays )
 
@@ -138,6 +228,13 @@ late down [ Source | Source ] -> [ Source DS | Source US ]
 late right [ Source | Wall | Source ] -> [ Source RS | Wall RS LS | Source LS ]
 late down [ Source | Wall | Source ] -> [ Source DS | Wall DS US | Source US ]
 
+( overloads )
+late [ RS LS DS ] -> [ RS LS DS overload ]
+late [ RS LS US ] -> [ RS LS US overload ]
+late [ US DS LS ] -> [ US DS LS overload ]
+late [ US DS RS ] -> [ US DS RS overload ]
+
+
 ==============
 WINCONDITIONS
 ==============
@@ -147,16 +244,16 @@ WINCONDITIONS
 LEVELS
 =======
 
-##############
-#............#
-#.##########.#
-#.#.S.S....#.#
-#.#.A...O..#.#
-#.#...S.S..#.#
-#.##########.#
-#.....#.C....#
-#............#
-#..S..P..S...#
-#............#
-#............#
-##############
+##############????⌜--------⌝
+#............#????|''''''''|
+#.##########.#????|''''''''|
+#.#.S.S....#.#????|''''''''|
+#.#.A...O..#.#????⌞--------⌟
+#.#...S.SS.#.#??????????????
+#.##########.#??????????????
+#.....#.C....#??????????????
+#............#??????????????
+#..S..P..S...#??????????????
+#...S....S...#??????????????
+#............#??????????????
+##############??????????????
