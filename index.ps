@@ -136,6 +136,28 @@ LIGHTGREEN
 .....
 .....
 
+HorizontalArm
+DARKGRAY
+00000
+00000
+00000
+00000
+00000
+
+VerticalArm
+DARKGRAY
+00000
+00000
+00000
+00000
+00000
+
+FirstTurn
+TRANSPARENT
+
+Shadow
+TRANSPARENT
+
 =======
 LEGEND
 =======
@@ -159,6 +181,10 @@ c = Controls and Floor
 ⌞ = UICornerBL and voidscape
 ⌟ = UICornerBR and voidscape
 
+[ = VerticalArm and Floor
+] = HorizontalArm and Floor
+
+Arm = HorizontalArm or VerticalArm
 Overlays = DS or US or LS or RS
 Pushable = Source
 Pusher = Player or Robot
@@ -167,8 +193,7 @@ Subject = Engineer or Robot
 UI = UIHorizontal or UIVertical or UICornerTL or UICornerTR or UICornerBL or UICornerBR
 Camera = Player
 Start = Player and Engineer and Floor
-P = Start
-
+P = Start and FirstTurn
 
 =======
 SOUNDS
@@ -181,13 +206,13 @@ COLLISIONLAYERS
 voidscape,
 Floor
 Target, Controls
-Engineer, Wall, Source, Robot, UI
+Wall, Source, UI, Player, Arm
+Engineer, Robot
 US, Controller
 DS
 LS
-RS
-overload
-Player
+RS, FirstTurn
+overload, Shadow
 
 ======
 RULES     
@@ -195,24 +220,41 @@ RULES
 
 ( NOTES )
 ( something should happen if the player makes a loop )
+( I was thinking everything inside the loop is obliterated )
+( and replaced with traversable voidscape )
+( and a shocking sound effect plays )
 ( but it should be impossible to make a loop for the first little while )
 
 ( we will hide some sources outside under the snow )
 ( this will work better if the sources have some depth, )
 ( but depth means the source dot can't be centered... )
 
-( the player cannot walk through walls )
-[> Player | Wall ] -> [ Player | Wall ]
+( on every turn after the first )
+( we want the turn to cancel if the player did not move )
+( this is because the player controls decorators like the Engineer )
+( which do not interact with blocks on their own )
+
+[Player no FirstTurn] -> [Player Shadow]
+[FirstTurn] -> []
+late [Player Shadow] -> cancel
+late [Shadow] -> []
 
 ( the player pilotes the engineer )
-[> Player] [Engineer] -> [> Player] [> Engineer]
+[> Player Engineer] -> [> Player > Engineer]
+
+( the Engineer pilotes the arms )
+horizontal [> Player Robot][HorizontalArm] -> [> Player Robot][> HorizontalArm]
+vertical [> Player Robot][VerticalArm] -> [> Player Robot][> VerticalArm]
+
+( the arms control the robo )
+[> Arm][Robot] -> [> Arm][> Robot]
 
 ( the engineer can activate and deactivate the robot )
 [action Player Engineer Controls] [Robot] -> [Engineer Controls] [Player Robot]
 [action Player Robot] [Engineer] -> [Robot] [Player Engineer]
 
 ( the engineer pilotes the robot )
-[ > Engineer ][ > Player Robot ] -> [ Engineer ][ > Player > Robot ]
+
 
 ( pushers push pushable things )
 [ > Pusher | Pushable ] -> [  >  Pusher | > Pushable  ]
@@ -220,8 +262,6 @@ RULES
 ( clear the overlays )
 [ Overlays ] -> []
 [ overload ] -> []
-
-
 
 ( render overlays )
 
@@ -253,10 +293,10 @@ LEVELS
 #............#????|''''''''|
 #.##########.#????|''''''''|
 #.#.S.S....#.#????|''''''''|
-#.#.A...O..#.#????⌞--------⌟
+#[#.A...O..#.#????⌞--------⌟
 #.#...S.SS.#.#??????????????
 #.##########.#??????????????
-#.....#.C....#??????????????
+#...]...C....#??????????????
 #............#??????????????
 #..S..P..S...#??????????????
 #...S....S...#??????????????
