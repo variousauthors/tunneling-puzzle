@@ -22,10 +22,34 @@ Floor
 Target 
 DarkBlue    
 
-Wall 
-DARKBROWN
+WallOuter
+brown DARKBROWN
+11111
+11111
+00000
+00000
+00000
+
+WallInner
+brown DARKBROWN
+11111
+11111
+11111
+11111
+11111
+
+WallZ
+brown DARKBROWN
+.....
+.....
+11111
+11111
+11111
 
 Player (camera)
+TRANSPARENT
+
+ConsoleCenter
 TRANSPARENT
 
 Engineer
@@ -34,57 +58,81 @@ blue
 Robot
 red
 
+VRobot
+LIGHTGREEN
+00.00
+0...0
+.....
+0...0
+00.00
+
 Controls
 orange
 
-Controller
-TRANSPARENT
+VirtualControls
+yellow
+
+SourceZ
+grey
+.....
+.....
+.....
+00000
+00000
 
 Source
-GREY blue
-00000
-00000
+GREY blue darkgrey
 00100
 00000
 00000
+22222
+22222
 
 US
 grey blue
-..1..
-..1..
-..1..
+.....
+.....
+.....
 .....
 .....
 
-DS
-LIGHTGRAY blue
-.....
-.....
-..1..
-..1..
-..1..
-
-LS
+USZ
 grey blue
 .....
 .....
+.....
+..1..
+..1..
+
+DS
+LIGHTGRAY blue
+..1..
+..1..
+..1..
+.....
+.....
+
+LS
+grey blue
 111..
+.....
+.....
 .....
 .....
 
 RS
 grey blue
-.....
-.....
 ..111
+.....
+.....
 .....
 .....
 
 overload
 red
-.....
-.....
 ..0..
+.....
+.....
 .....
 .....
 
@@ -136,6 +184,12 @@ LIGHTGREEN
 .....
 .....
 
+VirtualHArm
+LIGHTGREEN
+
+VirtualVArm
+LIGHTGREEN
+
 HorizontalArm
 DARKGRAY
 00000
@@ -165,11 +219,13 @@ LEGEND
 voidscape = Background
 
 . = Floor
-# = Wall and Floor
+# = WallInner and Floor
+% = WallOuter and Floor
 A = Robot and Floor
 O = Target and Floor
 S = Source and Floor
 c = Controls and Floor
+q = VirtualControls and Floor
 
 ? = voidscape
 ' = voidscape
@@ -180,16 +236,28 @@ c = Controls and Floor
 ⌝ = UICornerTR and voidscape
 ⌞ = UICornerBL and voidscape
 ⌟ = UICornerBR and voidscape
+* = ConsoleCenter and voidscape
+B = VRobot and voidscape
 
 [ = VerticalArm and Floor
 ] = HorizontalArm and Floor
 
+{ = VirtualVArm and voidscape
+} = VirtualHArm and voidscape
+
+ConcreteArm = HorizontalArm or VerticalArm
+VirtualArm = VirtualHArm or VirtualVArm
+
 Arm = HorizontalArm or VerticalArm
+
+ComplexArm = VirtualArm or HorizontalArm
+
 Overlays = DS or US or LS or RS
 Pushable = Source
-Pusher = Player or Robot
+Pusher = Player or Robot or Arm
 Subject = Engineer or Robot
 
+Wall = WallInner or WallOuter
 UI = UIHorizontal or UIVertical or UICornerTL or UICornerTR or UICornerBL or UICornerBR
 Camera = Player
 Start = Player and Engineer and Floor
@@ -203,12 +271,14 @@ SOUNDS
 COLLISIONLAYERS
 ================
 
-voidscape,
+voidscape
 Floor
-Target, Controls
-Wall, Source, UI, Player, Arm
-Engineer, Robot
-US, Controller
+Target, Controls, VirtualControls, ConsoleCenter
+Wall, Source, UI, Player, Arm, VirtualArm
+Engineer, Robot, VRobot
+SourceZ, WallZ
+US
+USZ
 DS
 LS
 RS, FirstTurn
@@ -225,16 +295,21 @@ RULES
 ( and a shocking sound effect plays )
 ( but it should be impossible to make a loop for the first little while )
 
-( we will hide some sources outside under the snow )
-( this will work better if the sources have some depth, )
-( but depth means the source dot can't be centered... )
+( should the flow that passes through walls appear over the walls? )
+
+( add virtual blocks that follow the concrete blocks )
+( add a virtual robot that follows the concrete robot )
+( when the player tries to disengage the console in a way )
+( that would create an illegal position for the robot )
+( cancel that shit )
+( while in the console, the robot is not a pusher )
 
 ( on every turn after the first )
 ( we want the turn to cancel if the player did not move )
 ( this is because the player controls decorators like the Engineer )
 ( which do not interact with blocks on their own )
 
-[Player no FirstTurn] -> [Player Shadow]
+[Player no FirstTurn no ConsoleCenter] -> [Player Shadow]
 [FirstTurn] -> []
 late [Player Shadow] -> cancel
 late [Shadow] -> []
@@ -242,19 +317,22 @@ late [Shadow] -> []
 ( the player pilotes the engineer )
 [> Player Engineer] -> [> Player > Engineer]
 
-( the Engineer pilotes the arms )
-horizontal [> Player Robot][HorizontalArm] -> [> Player Robot][> HorizontalArm]
-vertical [> Player Robot][VerticalArm] -> [> Player Robot][> VerticalArm]
+( the player pilotes the arms )
+horizontal [> Player Robot][HorizontalArm][VirtualHArm] -> [> Player Robot][> HorizontalArm][> VirtualHArm]
+horizontal [> Player ConsoleCenter][HorizontalArm][VirtualHArm] -> [Player ConsoleCenter][> HorizontalArm][> VirtualHArm]
+vertical [> Player Robot][VerticalArm][VirtualVArm] -> [> Player Robot][> VerticalArm][> VirtualVArm]
+vertical [> Player ConsoleCenter][VerticalArm][VirtualVArm] -> [Player ConsoleCenter][> VerticalArm][> VirtualVArm]
 
-( the arms control the robo )
-[> Arm][Robot] -> [> Arm][> Robot]
+( the arms control the robot and the virtual robot )
+[> Arm][Robot][VRobot] -> [> Arm][> Robot][> VRobot]
 
 ( the engineer can activate and deactivate the robot )
 [action Player Engineer Controls] [Robot] -> [Engineer Controls] [Player Robot]
 [action Player Robot] [Engineer] -> [Robot] [Player Engineer]
 
-( the engineer pilotes the robot )
-
+( or the virtual consol )
+[action Player Engineer VirtualControls] [ConsoleCenter] -> [Engineer VirtualControls] [Player ConsoleCenter]
+[action Player ConsoleCenter] [Engineer] -> [ConsoleCenter] [Player Engineer]
 
 ( pushers push pushable things )
 [ > Pusher | Pushable ] -> [  >  Pusher | > Pushable  ]
@@ -279,6 +357,18 @@ late [ RS LS US ] -> [ RS LS US overload ]
 late [ US DS LS ] -> [ US DS LS overload ]
 late [ US DS RS ] -> [ US DS RS overload ]
 
+( render Z )
+
+[ SourceZ ] -> []
+[ USZ ] -> []
+[ WallZ ] -> []
+
+late up [ Source | no SourceZ ] -> [ Source | SourceZ ]
+late up [ Source US | SourceZ ] -> [ Source US | SourceZ USZ ]
+
+late up [ Wall | no WallZ ] -> [ Wall | WallZ ]
+late up [ Wall US | WallZ ] -> [ Wall US | WallZ USZ ]
+
 
 ==============
 WINCONDITIONS
@@ -289,16 +379,31 @@ WINCONDITIONS
 LEVELS
 =======
 
-##############????⌜--------⌝
-#............#????|''''''''|
-#.##########.#????|''''''''|
-#.#.S.S....#.#????|''''''''|
-#[#.A...O..#.#????⌞--------⌟
-#.#...S.SS.#.#??????????????
-#.##########.#??????????????
-#...]...C....#??????????????
-#............#??????????????
-#..S..P..S...#??????????????
-#...S....S...#??????????????
-#............#??????????????
-##############??????????????
+##############
+#............#
+#.#%%%%%%%%#.#
+#.#.S.S....#.#
+#[#.A...O..#.#
+#.#...S.SS.#.#
+#.%%%%%%%%%%.#
+#...]...CQ...#
+#............#
+#..S..P..S...#
+#...S..#.S...#
+#......#.....#
+##############
+??????????????
+??????????????
+??⌜-------⌝???
+??|'''''''|???
+?{|'B'*'''|???
+??|'''''''|???
+??⌞-------⌟???
+????}?????????
+??????????????
+??????????????
+??????????????
+??????????????
+??????????????
+??????????????
+??????????????
