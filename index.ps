@@ -55,16 +55,11 @@ TRANSPARENT
 Engineer
 blue
 
-Robot
+RobotNoPush
 red
 
-VRobot
-LIGHTGREEN
-00.00
-0...0
-.....
-0...0
-00.00
+RobotPush
+red
 
 Controls
 orange
@@ -190,6 +185,25 @@ LIGHTGREEN
 VirtualVArm
 LIGHTGREEN
 
+VSource
+LIGHTGREEN
+
+VRobotNoPush
+LIGHTGREEN
+00.00
+0...0
+.....
+0...0
+00.00
+
+VRobotPush
+LIGHTGREEN
+00.00
+0...0
+.....
+0...0
+00.00
+
 HorizontalArm
 DARKGRAY
 00000
@@ -217,18 +231,23 @@ LEGEND
 =======
 
 voidscape = Background
+? = voidscape
+' = voidscape
+
+( lab )
 
 . = Floor
 # = WallInner and Floor
 % = WallOuter and Floor
-A = Robot and Floor
+A = RobotPush and Floor
 S = Source and Floor
 c = Controls and Floor
 q = VirtualControls and Floor
 
-? = voidscape
-' = voidscape
+[ = VerticalArm and Floor
+] = HorizontalArm and Floor
 
+( virtual console )
 | = UIVertical and voidscape
 - = UIHorizontal and voidscape
 ⌜ = UICornerTL and voidscape
@@ -236,13 +255,15 @@ q = VirtualControls and Floor
 ⌞ = UICornerBL and voidscape
 ⌟ = UICornerBR and voidscape
 * = ConsoleCenter and voidscape
-B = VRobot and voidscape
-
-[ = VerticalArm and Floor
-] = HorizontalArm and Floor
+B = VRobotPush and voidscape
+Z = VSource and voidscape
 
 { = VirtualVArm and voidscape
 } = VirtualHArm and voidscape
+
+( objects )
+VRobot = VRobotNoPush or VRobotPush
+Robot = RobotNoPush or RobotPush
 
 ConcreteArm = HorizontalArm or VerticalArm
 VirtualArm = VirtualHArm or VirtualVArm
@@ -252,8 +273,8 @@ Arm = HorizontalArm or VerticalArm
 ComplexArm = VirtualArm or HorizontalArm
 
 Overlays = DS or US or LS or RS
-Pushable = Source
-Pusher = Player or Robot or Arm
+Pushable = Source or VSource
+Pusher = Player or RobotPush or Arm or VRobotPush
 Subject = Engineer or Robot
 
 Wall = WallInner or WallOuter
@@ -273,7 +294,7 @@ COLLISIONLAYERS
 voidscape
 Floor
 Target, Controls, VirtualControls, ConsoleCenter
-Wall, Source, UI, Player, Arm, VirtualArm
+Wall, Source, UI, Player, Arm, VirtualArm, VSource
 Engineer, Robot, VRobot
 SourceZ, WallZ
 US
@@ -325,10 +346,13 @@ late [Shadow] -> []
 ( the player pilotes the engineer )
 [> Player Engineer] -> [> Player > Engineer]
 
-( the player pilotes the arms )
+( TODO when the robot is free the player pilotes the robot directly )
+
+( before the robot is free the player pilotes the arms )
 horizontal [> Player Robot][HorizontalArm][VirtualHArm] -> [> Player Robot][> HorizontalArm][> VirtualHArm]
-horizontal [> Player ConsoleCenter][HorizontalArm][VirtualHArm] -> [Player ConsoleCenter][> HorizontalArm][> VirtualHArm]
 vertical [> Player Robot][VerticalArm][VirtualVArm] -> [> Player Robot][> VerticalArm][> VirtualVArm]
+
+horizontal [> Player ConsoleCenter][HorizontalArm][VirtualHArm] -> [Player ConsoleCenter][> HorizontalArm][> VirtualHArm]
 vertical [> Player ConsoleCenter][VerticalArm][VirtualVArm] -> [Player ConsoleCenter][> VerticalArm][> VirtualVArm]
 
 ( the arms control the robot and the virtual robot )
@@ -341,21 +365,21 @@ vertical [> Player ConsoleCenter][VerticalArm][VirtualVArm] -> [Player ConsoleCe
 [action Player Robot] [Engineer] -> [Robot] [Player Engineer]
 
 ( the engineer can activate the virtual console )
-[action Player Engineer VirtualControls] [ConsoleCenter] -> [Engineer VirtualControls] [Player ConsoleCenter]
+[action Player Engineer VirtualControls] [ConsoleCenter] [RobotPush] [VRobotPush] -> [Engineer VirtualControls] [Player ConsoleCenter] [RobotNoPush] [VRobotNoPush]
 
 ( the engineer can't deactivate the virtual console if the robot is in an illegal position )
 [action Player ConsoleCenter] [Engineer] [Robot Source] -> cancel
 
 ( the engineer can deactivate the virtual console )
-[action Player ConsoleCenter] [Engineer] -> [ConsoleCenter] [Player Engineer]
+[action Player ConsoleCenter] [Engineer] [RobotNoPush] [VRobotNoPush] -> [ConsoleCenter] [Player Engineer] [RobotPush] [VRobotPush]
 
 ( --- SECTION: Pushing --- )
 
-( player engineer pushes things )
-( concrete arm pushes things )
-( robot pushes things )
-( TODO virtual robot does not push things )
+( pushers can push )
 [ > Pusher | Pushable ] -> [  >  Pusher | > Pushable  ]
+
+( NOTE: the robot is not a pusher when used via the console )
+( see "Virtual Console" above )
 
 ( --- SECTION: Render --- )
 
@@ -416,11 +440,11 @@ LEVELS
 ##############
 ??????????????
 ??????????????
-??⌜-------⌝???
-??|'''''''|???
-?{|'B'*'''|???
-??|'''''''|???
-??⌞-------⌟???
+??⌜--------⌝???
+??|'Z'Z''''|??
+?{|'B'*''''|??
+??|'''Z'ZZ'|??
+??⌞--------⌟??
 ????}?????????
 ??????????????
 ??????????????
