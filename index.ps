@@ -1,4 +1,4 @@
-title Tunneling
+title Abandon
 author various authors
 homepage www.puzzlescript.net
 zoomscreen 18x9
@@ -222,7 +222,6 @@ voidscape = Background
 # = WallInner and Floor
 % = WallOuter and Floor
 A = Robot and Floor
-O = Target and Floor
 S = Source and Floor
 c = Controls and Floor
 q = VirtualControls and Floor
@@ -294,6 +293,8 @@ RULES
 ( and replaced with traversable voidscape )
 ( and a shocking sound effect plays )
 ( but it should be impossible to make a loop for the first little while )
+( the game ends when the robot escapes like this )
+( and stands on the cliff outside overlooking the city )
 
 ( should the flow that passes through walls appear over the walls? )
 
@@ -304,10 +305,17 @@ RULES
 ( cancel that shit )
 ( while in the console, the robot is not a pusher )
 
+( the concrete arms control the virtual arms )
+( because the concrete arms might collide with something )
+( and this should cancel the virtual arms turn )
+
 ( on every turn after the first )
 ( we want the turn to cancel if the player did not move )
 ( this is because the player controls decorators like the Engineer )
 ( which do not interact with blocks on their own )
+
+( TODO the control pannels should be offset from the cage )
+( this is to prevent the concrete arms from colliding with the controls )
 
 [Player no FirstTurn no ConsoleCenter] -> [Player Shadow]
 [FirstTurn] -> []
@@ -326,16 +334,30 @@ vertical [> Player ConsoleCenter][VerticalArm][VirtualVArm] -> [Player ConsoleCe
 ( the arms control the robot and the virtual robot )
 [> Arm][Robot][VRobot] -> [> Arm][> Robot][> VRobot]
 
+( --- SECTION: Virtual Console --- )
+
 ( the engineer can activate and deactivate the robot )
 [action Player Engineer Controls] [Robot] -> [Engineer Controls] [Player Robot]
 [action Player Robot] [Engineer] -> [Robot] [Player Engineer]
 
-( or the virtual consol )
+( the engineer can activate the virtual console )
 [action Player Engineer VirtualControls] [ConsoleCenter] -> [Engineer VirtualControls] [Player ConsoleCenter]
+
+( the engineer can't deactivate the virtual console if the robot is in an illegal position )
+[action Player ConsoleCenter] [Engineer] [Robot Source] -> cancel
+
+( the engineer can deactivate the virtual console )
 [action Player ConsoleCenter] [Engineer] -> [ConsoleCenter] [Player Engineer]
 
-( pushers push pushable things )
+( --- SECTION: Pushing --- )
+
+( player engineer pushes things )
+( concrete arm pushes things )
+( robot pushes things )
+( TODO virtual robot does not push things )
 [ > Pusher | Pushable ] -> [  >  Pusher | > Pushable  ]
+
+( --- SECTION: Render --- )
 
 ( clear the overlays )
 [ Overlays ] -> []
@@ -383,7 +405,7 @@ LEVELS
 #............#
 #.#%%%%%%%%#.#
 #.#.S.S....#.#
-#[#.A...O..#.#
+#[#.A......#.#
 #.#...S.SS.#.#
 #.%%%%%%%%%%.#
 #...]...CQ...#
