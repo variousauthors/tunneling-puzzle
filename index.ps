@@ -3,10 +3,17 @@ author various authors
 homepage www.puzzlescript.net
 zoomscreen 18x9
 run_rules_on_level_start
+require_player_movement
 
 ========
 OBJECTS
 ========
+
+Victory
+Transparent
+
+Connected
+Transparent
 
 Background 
 black  
@@ -258,6 +265,8 @@ q = VirtualControls and Floor
 B = VRobotPush and voidscape
 Z = VSource and voidscape
 
+X = player and RobotPush and floor
+
 { = VirtualVArm and voidscape
 } = VirtualHArm and voidscape
 
@@ -303,6 +312,7 @@ DS
 LS
 RS, FirstTurn
 overload, Shadow
+Connected, Victory
 
 ======
 RULES     
@@ -311,84 +321,18 @@ RULES
 ( rules free zone )
 ( this branch is for testing levels )
 
-( NOTES )
-( something should happen if the player makes a loop )
-( I was thinking everything inside the loop is obliterated )
-( and replaced with traversable voidscape )
-( and a shocking sound effect plays )
-( but it should be impossible to make a loop for the first little while )
-( the game ends when the robot escapes like this )
-( and stands on the cliff outside overlooking the city )
-
-( should the flow that passes through walls appear over the walls? )
-
-( add virtual blocks that follow the concrete blocks )
-( add a virtual robot that follows the concrete robot )
-( when the player tries to disengage the console in a way )
-( that would create an illegal position for the robot )
-( cancel that shit )
-( while in the console, the robot is not a pusher )
-
-( the concrete arms control the virtual arms )
-( because the concrete arms might collide with something )
-( and this should cancel the virtual arms turn )
-
-( on every turn after the first )
-( we want the turn to cancel if the player did not move )
-( this is because the player controls decorators like the Engineer )
-( which do not interact with blocks on their own )
-
-( TODO the control pannels should be offset from the cage )
-( this is to prevent the concrete arms from colliding with the controls )
-
-[Player no FirstTurn no ConsoleCenter] -> [Player Shadow]
-[FirstTurn] -> []
-late [Player Shadow] -> cancel
-late [Shadow] -> []
-
-( the player pilotes the engineer )
-[> Player Engineer] -> [> Player > Engineer]
-
-( TODO when the robot is free the player pilotes the robot directly )
-
-( before the robot is free the player pilotes the arms )
-horizontal [> Player Robot][HorizontalArm][VirtualHArm] -> [> Player Robot][> HorizontalArm][> VirtualHArm]
-vertical [> Player Robot][VerticalArm][VirtualVArm] -> [> Player Robot][> VerticalArm][> VirtualVArm]
-
-horizontal [> Player ConsoleCenter][HorizontalArm][VirtualHArm] -> [Player ConsoleCenter][> HorizontalArm][> VirtualHArm]
-vertical [> Player ConsoleCenter][VerticalArm][VirtualVArm] -> [Player ConsoleCenter][> VerticalArm][> VirtualVArm]
-
-( the arms control the robot and the virtual robot )
-[> Arm][Robot][VRobot] -> [> Arm][> Robot][> VRobot]
-
 ( --- SECTION: Virtual Console --- )
-
-( the engineer can activate and deactivate the robot )
-[action Player Engineer Controls] [Robot] -> [Engineer Controls] [Player Robot]
-[action Player Robot] [Engineer] -> [Robot] [Player Engineer]
-
-( the engineer can activate the virtual console )
-[action Player Engineer VirtualControls] [ConsoleCenter] [RobotPush] [VRobotPush] -> [Engineer VirtualControls] [Player ConsoleCenter] [RobotNoPush] [VRobotNoPush]
-
-( the engineer can't deactivate the virtual console if the robot is in an illegal position )
-[action Player ConsoleCenter] [Engineer] [Robot Source] -> cancel
-
-( the engineer can deactivate the virtual console )
-[action Player ConsoleCenter] [Engineer] [RobotNoPush] [VRobotNoPush] -> [ConsoleCenter] [Player Engineer] [RobotPush] [VRobotPush]
 
 ( --- SECTION: Pushing --- )
 
 ( pushers can push )
+[ > player robot ] -> [ > player > robot ] 
 [ > Pusher | Pushable ] -> [  >  Pusher | > Pushable  ]
-
-( NOTE: the robot is not a pusher when used via the console )
-( see "Virtual Console" above )
 
 ( --- SECTION: Render --- )
 
 ( clear the overlays )
 [ Overlays ] -> []
-[ overload ] -> []
 
 ( render overlays )
 
@@ -401,10 +345,21 @@ late right [ Source | Wall | Source ] -> [ Source RS | Wall RS LS | Source LS ]
 late down [ Source | Wall | Source ] -> [ Source DS | Wall DS US | Source US ]
 
 ( overloads )
+[ overload ] -> []
 late [ RS LS DS ] -> [ RS LS DS overload ]
 late [ RS LS US ] -> [ RS LS US overload ]
 late [ US DS LS ] -> [ US DS LS overload ]
 late [ US DS RS ] -> [ US DS RS overload ]
+
+( winning )
+[ player ] -> [player victory ]
+[ connected ] -> []
+late random [ Source ] -> [ Source Connected ]
+late [ Source Connected | Source no Connected ] -> [ Source Connected | Source Connected ]
+late [ Victory ] [ Source no Connected ] -> [][Source]
+
+( no loops! )
+late random [ 
 
 ( render Z )
 
@@ -418,15 +373,34 @@ late up [ Source US | SourceZ ] -> [ Source US | SourceZ USZ ]
 late up [ Wall | no WallZ ] -> [ Wall | WallZ ]
 late up [ Wall US | WallZ ] -> [ Wall US | WallZ USZ ]
 
-
 ==============
 WINCONDITIONS
 ==============
 
+no overload
+some victory
 
 =======     
 LEVELS
 =======
+
+#%%%#
+#SSS#
+#...#
+#.SS#
+#...#
+##X##
+#####
+
+#%%%#
+S...#
+#SSSS
+#...#
+#.S.#
+##X##
+#####
+
+
 
 ##############
 #............#
