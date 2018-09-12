@@ -9,6 +9,30 @@ require_player_movement
 OBJECTS
 ========
 
+M
+TRANSPARENT green
+1....
+.....
+.....
+.....
+.....
+
+L1
+TRANSPARENT orange
+.1...
+.....
+.....
+.....
+.....
+
+L2
+TRANSPARENT purple
+..1..
+.....
+.....
+.....
+.....
+
 Victory
 Transparent
 
@@ -312,6 +336,8 @@ DS
 LS
 RS, FirstTurn
 overload, Shadow
+L1, L2
+M
 Connected, Victory
 
 ======
@@ -359,7 +385,13 @@ late [ Source Connected | Source no Connected ] -> [ Source Connected | Source C
 late [ Victory ] [ Source no Connected ] -> [][Source]
 
 ( no loops! )
-late random [ 
+( test every joint for being an "end" )
+[L1] -> []
+[L2] -> []
+[M] -> []
+
+late [ no Source | Source no L1 | Source ] -> [ no Source | Source L1 | Source ]
+
 
 ( render Z )
 
@@ -377,12 +409,24 @@ late up [ Wall US | WallZ ] -> [ Wall US | WallZ USZ ]
 WINCONDITIONS
 ==============
 
+(
+some L1
 no overload
 some victory
+)
 
 =======     
 LEVELS
 =======
+
+#%%%%%%%#
+#.......#
+#....S..#
+#.S.....#
+#.....S.#
+#...S...#
+#......X#
+%%%%%%%%%
 
 #%%%#
 #SSS#
